@@ -26,7 +26,7 @@ export function Navbar({ user }) {
             <>
               <Link
                 to="/auth/signin"
-                className="text-sm font-semibold text-white/70 hover:text-white hover:scale-105 transition-all duration-300 px-4 py-2"
+                className="text-sm font-semibold bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-5 py-2.5 rounded-xl hover:shadow-lg hover:shadow-indigo-500/30 hover:scale-105 transition-all duration-300"
               >
                 Sign In
               </Link>
