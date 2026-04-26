@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Download, Monitor, Moon, Sun, ZoomIn, ZoomOut } from 'lucide-react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { Download, Monitor, Moon, Sun } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { BottomNav } from './components/BottomNav';
@@ -171,12 +171,39 @@ export function AuthPage({ mode }) {
   );
 }
 
+const CV_WIDTH_PX = 794;  // A4 at 96 dpi
+const CV_HEIGHT_PX = 1122;
+
 export function Dashboard() {
   const { user } = useAuth();
   const { data, setData, isLoading, saveStatus } = useCV(Boolean(user));
   const [activeTab, setActiveTab] = useState('forms');
   const [isDownloading, setIsDownloading] = useState(false);
-  const [zoom, setZoom] = useState(1);
+  const [fitScale, setFitScale] = useState(1);
+  const containerRef = useRef(null);
+
+  // Measure the scroll container and compute the fit scale in real pixels
+  const computeScale = useCallback(() => {
+    if (!containerRef.current) return;
+    const { clientWidth, clientHeight } = containerRef.current;
+    const scaleX = clientWidth / CV_WIDTH_PX;
+    const scaleY = clientHeight / CV_HEIGHT_PX;
+    setFitScale(Math.min(scaleX, scaleY));
+  }, []);
+
+  useEffect(() => {
+    // Compute on mount and whenever the preview tab becomes active
+    if (activeTab === 'preview') {
+      // rAF ensures the container is laid out before we measure
+      requestAnimationFrame(computeScale);
+    }
+  }, [activeTab, computeScale]);
+
+  useEffect(() => {
+    const observer = new ResizeObserver(computeScale);
+    if (containerRef.current) observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, [computeScale]);
 
   async function handleDownload() {
     setIsDownloading(true);
@@ -220,54 +247,50 @@ export function Dashboard() {
         </div>
 
         {/* Preview Tab */}
-        {/* navbar=56px, download-bar=64px, bottom-nav=64px => reserved=184px; padding each side=16px => horiz reserved=32px */}
-        <div className={activeTab === 'preview' ? 'flex-1 flex flex-col h-full overflow-hidden relative' : 'hidden'}>
-          <div className="p-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-sm z-20">
+        <div className={activeTab === 'preview' ? 'flex-1 flex flex-col' : 'hidden'} style={{ minHeight: 0 }}>
+          <div className="p-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-sm z-20 shrink-0">
             <Button variant="primary" className="w-full" onClick={handleDownload} isLoading={isDownloading}>
               <Download className="h-4 w-4 mr-2" />
               Download PDF
             </Button>
           </div>
-          <div className="flex-1 overflow-auto bg-slate-200 dark:bg-slate-800 flex justify-center p-4 custom-scrollbar">
-            {/* 
-              A4 = 794 x 1122 px at 96dpi.
-              fitScale = min( (vw - 32px) / 794,  (vh - 184px - 32px) / 1122 )
-              zoom multiplier starts at 1 (= fit) and goes up; min is always fit.
+          {/*
+            The scroll container fills all remaining space.
+            overflow: auto + touch-action: pan-x pan-y pinch-zoom = native pinch-to-zoom on mobile.
+            The CV is scaled to exactly fit inside on load; user can pinch to zoom in further.
+          */}
+          <div
+            ref={containerRef}
+            className="flex-1 overflow-auto bg-slate-200 dark:bg-slate-800 flex justify-center items-start"
+            style={{ touchAction: 'pan-x pan-y pinch-zoom' }}
+          >
+            {/*
+              Outer div reserves exactly the space the scaled CV will take,
+              so the scroll container knows its content size.
             */}
-            <div 
-              className="relative transition-all duration-200"
+            <div
               style={{
-                width:  `calc((min(100vw - 32px, (100vh - 216px) * 794 / 1122)) * ${zoom})`,
-                height: `calc((min(100vw - 32px, (100vh - 216px) * 794 / 1122)) * 1122 / 794 * ${zoom})`,
+                width:  `${CV_WIDTH_PX  * fitScale}px`,
+                height: `${CV_HEIGHT_PX * fitScale}px`,
+                flexShrink: 0,
+                position: 'relative',
               }}
             >
+              {/* Inner div is the real 794px-wide CV, scaled down to fit */}
               <div
-                className="absolute top-0 left-0 w-[794px] origin-top-left transition-transform duration-200 shadow-xl"
                 style={{
-                  transform: `scale(calc(min((100vw - 32px) / 794, (100vh - 216px) / 1122) * ${zoom}))`,
+                  width:     `${CV_WIDTH_PX}px`,
+                  transformOrigin: 'top left',
+                  transform: `scale(${fitScale})`,
+                  boxShadow: '0 10px 40px rgba(0,0,0,0.25)',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
                 }}
               >
                 <CVPreview data={data} />
               </div>
             </div>
-          </div>
-
-          {/* Zoom Controls */}
-          <div className="absolute bottom-6 right-6 flex flex-col gap-2 z-30">
-            <button
-              onClick={() => setZoom(z => Math.min(z + 0.25, 3))}
-              className="p-3 bg-white dark:bg-slate-700 rounded-full shadow-lg border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors"
-              aria-label="Zoom In"
-            >
-              <ZoomIn className="h-6 w-6" />
-            </button>
-            <button
-              onClick={() => setZoom(z => Math.max(z - 0.25, 1))}
-              className="p-3 bg-white dark:bg-slate-700 rounded-full shadow-lg border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors"
-              aria-label="Zoom Out"
-            >
-              <ZoomOut className="h-6 w-6" />
-            </button>
           </div>
         </div>
 
