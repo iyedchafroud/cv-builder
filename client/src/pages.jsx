@@ -220,6 +220,7 @@ export function Dashboard() {
         </div>
 
         {/* Preview Tab */}
+        {/* navbar=56px, download-bar=64px, bottom-nav=64px => reserved=184px; padding each side=16px => horiz reserved=32px */}
         <div className={activeTab === 'preview' ? 'flex-1 flex flex-col h-full overflow-hidden relative' : 'hidden'}>
           <div className="p-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-sm z-20">
             <Button variant="primary" className="w-full" onClick={handleDownload} isLoading={isDownloading}>
@@ -227,35 +228,41 @@ export function Dashboard() {
               Download PDF
             </Button>
           </div>
-          <div className="flex-1 overflow-auto bg-slate-200 dark:bg-slate-800 flex justify-center p-4 sm:p-8 custom-scrollbar">
-            {/* Wrapper to handle scaling nicely without breaking layout */}
+          <div className="flex-1 overflow-auto bg-slate-200 dark:bg-slate-800 flex justify-center p-4 custom-scrollbar">
+            {/* 
+              A4 = 794 x 1122 px at 96dpi.
+              fitScale = min( (vw - 32px) / 794,  (vh - 184px - 32px) / 1122 )
+              zoom multiplier starts at 1 (= fit) and goes up; min is always fit.
+            */}
             <div 
-              className="relative transition-all duration-200" 
-              style={{ 
-                width: `calc(210mm * min((100vw - 2rem) / 794, (100vh - 14rem) / 1122) * ${zoom})`, 
-                height: `calc(297mm * min((100vw - 2rem) / 794, (100vh - 14rem) / 1122) * ${zoom})` 
+              className="relative transition-all duration-200"
+              style={{
+                width:  `calc((min(100vw - 32px, (100vh - 216px) * 794 / 1122)) * ${zoom})`,
+                height: `calc((min(100vw - 32px, (100vh - 216px) * 794 / 1122)) * 1122 / 794 * ${zoom})`,
               }}
             >
-              <div 
-                className="absolute top-0 left-0 w-[210mm] origin-top-left transition-transform duration-200 shadow-xl"
-                style={{ transform: `scale(calc(min((100vw - 2rem) / 794, (100vh - 14rem) / 1122) * ${zoom}))` }}
+              <div
+                className="absolute top-0 left-0 w-[794px] origin-top-left transition-transform duration-200 shadow-xl"
+                style={{
+                  transform: `scale(calc(min((100vw - 32px) / 794, (100vh - 216px) / 1122) * ${zoom}))`,
+                }}
               >
                 <CVPreview data={data} />
               </div>
             </div>
           </div>
-          
+
           {/* Zoom Controls */}
           <div className="absolute bottom-6 right-6 flex flex-col gap-2 z-30">
             <button
-              onClick={() => setZoom(z => Math.min(z + 0.5, 3))}
+              onClick={() => setZoom(z => Math.min(z + 0.25, 3))}
               className="p-3 bg-white dark:bg-slate-700 rounded-full shadow-lg border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors"
               aria-label="Zoom In"
             >
               <ZoomIn className="h-6 w-6" />
             </button>
             <button
-              onClick={() => setZoom(z => Math.max(z - 0.5, 1))}
+              onClick={() => setZoom(z => Math.max(z - 0.25, 1))}
               className="p-3 bg-white dark:bg-slate-700 rounded-full shadow-lg border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors"
               aria-label="Zoom Out"
             >
