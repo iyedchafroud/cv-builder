@@ -6,7 +6,7 @@ import { BottomNav } from './components/BottomNav';
 import { CVForm } from './components/CVForm';
 import { CVPreview } from './components/CVPreview';
 import { Settings } from './components/Settings';
-import { Button, Input, SaveStatus } from './components/ui';
+import { Button, Input, SaveStatus, SectionToggle } from './components/ui';
 import { useAuth } from './context/AuthContext';
 import { useTheme } from './context/ThemeContext';
 import { useCV } from './hooks/useCV';
@@ -240,6 +240,12 @@ export function Dashboard() {
 
         {/* Preview Tab */}
         <div className={activeTab === 'preview' ? 'flex-1 flex flex-col' : 'hidden'} style={{ minHeight: 0 }}>
+          <div className="p-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-sm z-20 shrink-0">
+            <SectionToggle
+              order={data.sectionOrder}
+              onChange={(order) => setData({ ...data, sectionOrder: order })}
+            />
+          </div>
 
           {/*
             The scroll container fills all remaining space.
