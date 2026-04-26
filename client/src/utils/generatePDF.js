@@ -1,4 +1,5 @@
 import jsPDF from 'jspdf';
+import { Filesystem, Directory } from '@capacitor/filesystem';
 
 function addWrappedText(doc, text, x, y, maxWidth, lineHeight) {
   const lines = doc.splitTextToSize(text, maxWidth);
@@ -17,7 +18,7 @@ function normalizeLineItems(text) {
     .filter(Boolean);
 }
 
-export function generatePDF(data) {
+export async function generatePDF(data) {
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -182,5 +183,22 @@ export function generatePDF(data) {
   }
 
   const filenameBase = sanitizeFilename(data.personal.fullName || 'cv');
-  doc.save(`${filenameBase || 'cv'}.pdf`);
+  const fileName = `${filenameBase || 'cv'}.pdf`;
+
+  try {
+    const dataUri = doc.output('datauristring');
+    const base64Data = dataUri.split(',')[1];
+    
+    await Filesystem.writeFile({
+      path: fileName,
+      data: base64Data,
+      directory: Directory.Documents,
+    });
+    
+    alert(`PDF saved successfully to Documents/${fileName}`);
+  } catch (error) {
+    console.error('Error saving PDF via Capacitor:', error);
+    // Fallback for web or if permissions fail
+    doc.save(fileName);
+  }
 }
