@@ -18,7 +18,7 @@ export function BottomNav({ activeTab, onTabChange }) {
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
               className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${
-                isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-300'
+                isActive ? 'text-green-600 dark:text-green-400' : 'text-slate-500 dark:text-slate-400 hover:text-green-500 dark:hover:text-green-300'
               }`}
             >
               <Icon className="h-5 w-5" />

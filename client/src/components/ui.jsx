@@ -6,22 +6,22 @@ export function cn(...classes) {
 }
 
 export const panelClassName =
-  'bg-white p-6 rounded-xl shadow-sm border border-slate-100';
+  'bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 transition-colors';
 export const fieldClassName =
-  'flex h-10 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50 transition-all';
+  'flex h-10 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50 transition-all';
 export const textareaClassName =
-  'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-y transition-all';
+  'w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-y transition-all';
 
 export const Button = forwardRef(function Button(
   { className, variant = 'primary', size = 'md', isLoading = false, type, children, ...props },
   ref
 ) {
   const variants = {
-    primary: 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm',
-    secondary: 'bg-slate-100 text-slate-900 hover:bg-slate-200',
-    outline: 'border border-slate-300 bg-transparent hover:bg-slate-50 text-slate-700',
-    ghost: 'bg-transparent hover:bg-slate-100 text-slate-700',
-    danger: 'bg-red-600 text-white hover:bg-red-700 shadow-sm',
+    primary: 'bg-green-600 text-white hover:bg-green-700 shadow-sm dark:bg-green-500 dark:hover:bg-green-600',
+    secondary: 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700',
+    outline: 'border border-slate-300 dark:border-slate-600 bg-transparent hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300',
+    ghost: 'bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300',
+    danger: 'bg-red-600 text-white hover:bg-red-700 shadow-sm dark:bg-red-500 dark:hover:bg-red-600',
   };
 
   const sizes = {
@@ -35,7 +35,7 @@ export const Button = forwardRef(function Button(
       ref={ref}
       type={type || 'button'}
       className={cn(
-        'inline-flex items-center justify-center rounded-lg font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:pointer-events-none disabled:opacity-50',
+        'inline-flex items-center justify-center rounded-lg font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 disabled:pointer-events-none disabled:opacity-50',
         variants[variant],
         sizes[size],
         className
@@ -56,7 +56,7 @@ export const Input = forwardRef(function Input(
   return (
     <div className="w-full">
       {label && (
-        <label htmlFor={id} className="block text-sm font-medium text-slate-700 mb-1.5">
+        <label htmlFor={id} className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 transition-colors">
           {label}
         </label>
       )}
@@ -97,18 +97,18 @@ export function TagInput({ label, tags, onChange, placeholder }) {
 
   return (
     <div className="w-full">
-      <label className="block text-sm font-medium text-slate-700 mb-1.5">{label}</label>
+      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 transition-colors">{label}</label>
       <div className="flex flex-wrap gap-2 mb-2">
         {tags.map((tag) => (
           <span
             key={tag}
-            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800"
+            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-green-100 text-green-800"
           >
             {tag}
             <button
               type="button"
               onClick={() => removeTag(tag)}
-              className="ml-1.5 inline-flex items-center justify-center h-4 w-4 rounded-full text-indigo-400 hover:bg-indigo-200 hover:text-indigo-600 focus:outline-none"
+              className="ml-1.5 inline-flex items-center justify-center h-4 w-4 rounded-full text-green-400 hover:bg-green-200 hover:text-green-600 focus:outline-none"
             >
               <X className="h-3 w-3" />
             </button>
@@ -127,7 +127,7 @@ export function TagInput({ label, tags, onChange, placeholder }) {
         <button
           type="button"
           onClick={addTag}
-          className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 text-sm font-medium"
+          className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-sm font-medium transition-colors"
         >
           Add
         </button>
@@ -162,17 +162,17 @@ export function SaveStatus({ status }) {
 
 export function SectionToggle({ order, onChange }) {
   return (
-    <div className="flex items-center gap-2 bg-white p-2 rounded-lg border border-slate-200 shadow-sm">
-      <span className="text-xs font-medium text-slate-500 uppercase tracking-wider px-2">
+    <div className="flex items-center gap-2 bg-white dark:bg-slate-800 p-2 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm transition-colors">
+      <span className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider px-2">
         Prioritize:
       </span>
       <button
         onClick={() => onChange('experience')}
         className={cn(
           'px-3 py-1.5 text-sm font-medium rounded-md transition-all',
-          order === 'experience'
-            ? 'bg-indigo-100 text-indigo-700 shadow-sm'
-            : 'text-slate-600 hover:bg-slate-50'
+            order === 'experience'
+              ? 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 shadow-sm'
+              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50'
         )}
       >
         Experience
@@ -182,9 +182,9 @@ export function SectionToggle({ order, onChange }) {
         onClick={() => onChange('education')}
         className={cn(
           'px-3 py-1.5 text-sm font-medium rounded-md transition-all',
-          order === 'education'
-            ? 'bg-indigo-100 text-indigo-700 shadow-sm'
-            : 'text-slate-600 hover:bg-slate-50'
+            order === 'education'
+              ? 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 shadow-sm'
+              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50'
         )}
       >
         Education

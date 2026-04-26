@@ -21,7 +21,7 @@ export function Settings() {
         <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{user?.email}</p>
         
         <div className="space-y-3">
-          <Button variant="ghost" className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20" onClick={handleSignOut}>
+          <Button variant="ghost" className="w-full justify-start text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors" onClick={handleSignOut}>
             <LogOut className="h-4 w-4 mr-2" />
             Sign Out
           </Button>
@@ -35,7 +35,7 @@ export function Settings() {
             onClick={() => setTheme('system')}
             className={`w-full flex items-center p-3 rounded-lg border transition-colors ${
               theme === 'system' 
-                ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300' 
+                ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300' 
                 : 'border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
             }`}
           >
@@ -47,7 +47,7 @@ export function Settings() {
             onClick={() => setTheme('light')}
             className={`w-full flex items-center p-3 rounded-lg border transition-colors ${
               theme === 'light' 
-                ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300' 
+                ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300' 
                 : 'border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
             }`}
           >
@@ -59,7 +59,7 @@ export function Settings() {
             onClick={() => setTheme('dark')}
             className={`w-full flex items-center p-3 rounded-lg border transition-colors ${
               theme === 'dark' 
-                ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300' 
+                ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300' 
                 : 'border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
             }`}
           >

@@ -299,7 +299,7 @@ export function CVForm({ data, onChange }) {
                           onChange={(event) =>
                             updateExperience(item.id, 'isCurrent', event.target.checked)
                           }
-                          className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                          className="rounded border-slate-300 text-green-600 focus:ring-green-500"
                         />
                         I currently work here
                       </label>
@@ -558,7 +558,7 @@ export function CVForm({ data, onChange }) {
                           onChange={(event) =>
                             updateExperience(item.id, 'isCurrent', event.target.checked)
                           }
-                          className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                          className="rounded border-slate-300 text-green-600 focus:ring-green-500"
                         />
                         I currently work here
                       </label>
