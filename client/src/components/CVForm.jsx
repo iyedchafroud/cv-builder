@@ -25,6 +25,7 @@ function EmptyState({ label }) {
 
 export function CVForm({ data, onChange }) {
   const [isReformulating, setIsReformulating] = useState(false);
+  const [reformulatingExpIds, setReformulatingExpIds] = useState({});
 
   async function handleReformulateSummary() {
     if (!data.summary.trim() || isReformulating) return;
@@ -67,6 +68,50 @@ export function CVForm({ data, onChange }) {
       alert('An error occurred while reformulating. Please try again later.');
     } finally {
       setIsReformulating(false);
+    }
+  }
+
+  async function handleReformulateExperience(item) {
+    if (!item.description.trim() || reformulatingExpIds[item.id]) return;
+    setReformulatingExpIds((prev) => ({ ...prev, [item.id]: true }));
+    try {
+      const role = item.jobTitle ? item.jobTitle : 'professional';
+      const context = item.company ? ` at ${item.company}` : '';
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=AIzaSyAe6E2q1X9EzNBybKR6X5PtFAnuV5Z2zhQ`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [
+                  {
+                    text: `You are an expert CV writer specializing in ATS-optimized resumes. Rewrite the following work experience description for a ${role}${context} role.\n\nRequirements:\n- Format as concise bullet points, each on its own line starting with "- "\n- Begin every bullet with a strong, specific action verb (e.g. Led, Engineered, Reduced, Delivered)\n- Highlight measurable achievements and impact wherever possible\n- Fix any grammar or spelling errors\n- Keep language professional and ATS-friendly\n- Return ONLY the bullet points with no extra commentary, quotes, or preamble\n\nDescription:\n${item.description}`,
+                  },
+                ],
+              },
+            ],
+          }),
+        }
+      );
+      const result = await response.json();
+      if (result.candidates && result.candidates[0].content.parts[0].text) {
+        const newDesc = result.candidates[0].content.parts[0].text.trim().slice(0, 1200);
+        updateExperience(item.id, 'description', newDesc);
+      } else {
+        console.error('Unexpected API response:', result);
+        alert('Failed to reformulate description. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error reformulating description:', error);
+      alert('An error occurred while reformulating. Please try again later.');
+    } finally {
+      setReformulatingExpIds((prev) => {
+        const next = { ...prev };
+        delete next[item.id];
+        return next;
+      });
     }
   }
   function updateRoot(field, value) {
@@ -367,20 +412,37 @@ export function CVForm({ data, onChange }) {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 transition-colors">
-                      Description
-                    </label>
-                    <textarea
-                      className={`${textareaClassName} h-24`}
-                      placeholder={'- Achieved X by doing Y\n- Led a team of Z developers'}
-                      value={item.description}
-                      onChange={(event) =>
-                        updateExperience(item.id, 'description', event.target.value)
-                      }
-                    />
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 transition-colors">
-                      Use bullet points for better readability.
-                    </p>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 transition-colors">
+                        Description
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => handleReformulateExperience(item)}
+                        disabled={!item.description.trim() || !!reformulatingExpIds[item.id]}
+                        title="Rewrite as ATS-friendly bullet points"
+                        className="flex-none w-7 h-7 min-w-[1.75rem] min-h-[1.75rem] flex items-center justify-center bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-800 border border-indigo-200 dark:border-indigo-700 shadow-sm rounded-md transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                      >
+                        {reformulatingExpIds[item.id] ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin text-indigo-600 dark:text-indigo-400 flex-none" />
+                        ) : (
+                          <span className="text-sm leading-none select-none">✨</span>
+                        )}
+                      </button>
+                    </div>
+                    <div className="relative">
+                      <textarea
+                        className={`${textareaClassName} h-24 resize-none`}
+                        placeholder={'- Achieved X by doing Y\n- Led a team of Z developers'}
+                        value={item.description}
+                        onChange={(event) =>
+                          updateExperience(item.id, 'description', event.target.value.slice(0, 1200))
+                        }
+                      />
+                      <div className="absolute bottom-2 right-2 text-xs text-slate-400">
+                        {item.description.length}/1200
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -626,20 +688,37 @@ export function CVForm({ data, onChange }) {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 transition-colors">
-                      Description
-                    </label>
-                    <textarea
-                      className={`${textareaClassName} h-24`}
-                      placeholder={'- Achieved X by doing Y\n- Led a team of Z developers'}
-                      value={item.description}
-                      onChange={(event) =>
-                        updateExperience(item.id, 'description', event.target.value)
-                      }
-                    />
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 transition-colors">
-                      Use bullet points for better readability.
-                    </p>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 transition-colors">
+                        Description
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => handleReformulateExperience(item)}
+                        disabled={!item.description.trim() || !!reformulatingExpIds[item.id]}
+                        title="Rewrite as ATS-friendly bullet points"
+                        className="flex-none w-7 h-7 min-w-[1.75rem] min-h-[1.75rem] flex items-center justify-center bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-800 border border-indigo-200 dark:border-indigo-700 shadow-sm rounded-md transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                      >
+                        {reformulatingExpIds[item.id] ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin text-indigo-600 dark:text-indigo-400 flex-none" />
+                        ) : (
+                          <span className="text-sm leading-none select-none">✨</span>
+                        )}
+                      </button>
+                    </div>
+                    <div className="relative">
+                      <textarea
+                        className={`${textareaClassName} h-24 resize-none`}
+                        placeholder={'- Achieved X by doing Y\n- Led a team of Z developers'}
+                        value={item.description}
+                        onChange={(event) =>
+                          updateExperience(item.id, 'description', event.target.value.slice(0, 1200))
+                        }
+                      />
+                      <div className="absolute bottom-2 right-2 text-xs text-slate-400">
+                        {item.description.length}/1200
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
