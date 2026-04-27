@@ -55,6 +55,12 @@ export const authApi = {
   deleteAccount() {
     return request('/auth/account', { method: 'DELETE' });
   },
+  updateProfile(name) {
+    return request('/auth/profile', {
+      method: 'PATCH',
+      body: JSON.stringify({ name }),
+    });
+  },
 };
 
 export const cvApi = {

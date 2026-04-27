@@ -134,6 +134,40 @@ app.delete('/api/auth/account', requireAuth, async (req, res) => {
   }
 });
 
+// PATCH /api/auth/profile — update the user's display name
+app.patch('/api/auth/profile', requireAuth, async (req, res) => {
+  try {
+    const name = String(req.body?.name || '').trim();
+
+    if (!name) {
+      return res.status(400).json({ error: 'Name cannot be empty' });
+    }
+
+    if (name.length > 100) {
+      return res.status(400).json({ error: 'Name must be 100 characters or fewer' });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { name },
+      { new: true, runValidators: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Return fresh token so the client reflects the updated name immediately
+    return res.json({
+      user: getPublicUser(user),
+      token: createToken(user),
+    });
+  } catch (error) {
+    console.error('Profile update failed', error);
+    return res.status(500).json({ error: 'Failed to update profile' });
+  }
+});
+
 // ─── CV helpers ──────────────────────────────────────────────────────────────
 
 function serializeCV(cv) {
@@ -153,10 +187,13 @@ app.get('/api/cvs', requireAuth, async (req, res) => {
 
     // New user: create a default CV so they always have at least one
     if (cvs.length === 0) {
+      const user = await User.findById(req.user.id).select('name').lean();
+      const initialData = cloneInitialCVData();
       const defaultCV = await CV.create({
         userId: req.user.id,
         name: 'My CV',
-        ...cloneInitialCVData(),
+        ...initialData,
+        personal: { ...initialData.personal, fullName: user?.name || '' },
       });
       cvs = [defaultCV];
     }
@@ -179,10 +216,13 @@ app.post('/api/cvs', requireAuth, async (req, res) => {
 
     const name = String(req.body?.name || 'New CV').trim().slice(0, 100) || 'New CV';
 
+    const user = await User.findById(req.user.id).select('name').lean();
+    const initialData = cloneInitialCVData();
     const cv = await CV.create({
       userId: req.user.id,
       name,
-      ...cloneInitialCVData(),
+      ...initialData,
+      personal: { ...initialData.personal, fullName: user?.name || '' },
     });
 
     return res.status(201).json(serializeCV(cv));

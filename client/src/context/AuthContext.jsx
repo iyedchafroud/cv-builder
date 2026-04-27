@@ -59,6 +59,13 @@ export function AuthProvider({ children }) {
     setUser(null);
   }
 
+  async function updateProfile(name) {
+    const response = await authApi.updateProfile(name);
+    persistToken(response.token); // fresh token with updated name
+    setUser(response.user);
+    return response.user;
+  }
+
   const value = useMemo(
     () => ({
       user,
@@ -66,6 +73,7 @@ export function AuthProvider({ children }) {
       signIn,
       signUp,
       signOut,
+      updateProfile,
     }),
     [user, loading]
   );
