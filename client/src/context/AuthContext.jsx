@@ -50,10 +50,8 @@ export function AuthProvider({ children }) {
   }
 
   async function signUp(details) {
-    const response = await authApi.register(details);
-    persistToken(response.token);
-    setUser(response.user);
-    return response.user;
+    await authApi.register(details);
+    // Registration only — user must sign in manually.
   }
 
   function signOut() {
