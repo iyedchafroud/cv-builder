@@ -5,11 +5,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { BottomNav } from './components/BottomNav';
 import { CVForm } from './components/CVForm';
 import { CVPreview } from './components/CVPreview';
+import { CVsTab } from './components/CVsTab';
 import { Settings } from './components/Settings';
 import { Button, Input, SaveStatus, SectionToggle } from './components/ui';
 import { useAuth } from './context/AuthContext';
 import { useTheme } from './context/ThemeContext';
-import { useCV } from './hooks/useCV';
+import { useCVManager } from './hooks/useCVManager';
 import { generatePDF } from './utils/generatePDF';
 
 export function AuthPage({ mode }) {
@@ -176,7 +177,19 @@ const CV_HEIGHT_PX = 1122;
 
 export function Dashboard() {
   const { user } = useAuth();
-  const { data, setData, isLoading, saveStatus } = useCV(Boolean(user));
+  const {
+    cvs,
+    activeCvId,
+    setActiveCvId,
+    activeData,
+    setActiveData,
+    addCV,
+    deleteCV,
+    renameCV,
+    isLoading,
+    saveStatus,
+    maxCVs,
+  } = useCVManager(Boolean(user));
   const [activeTab, setActiveTab] = useState('forms');
   const [isDownloading, setIsDownloading] = useState(false);
   const [fitScale, setFitScale] = useState(1);
@@ -208,7 +221,7 @@ export function Dashboard() {
   async function handleDownload() {
     setIsDownloading(true);
     try {
-      await generatePDF(data);
+      await generatePDF(activeData);
     } catch (e) {
       console.error(e);
       alert('Failed to download PDF');
@@ -235,15 +248,15 @@ export function Dashboard() {
       <main className="flex-1 w-full relative flex flex-col">
         {/* Forms Tab */}
         <div className={activeTab === 'forms' ? 'flex-1 pb-6' : 'hidden'}>
-          <CVForm data={data} onChange={setData} />
+          <CVForm data={activeData} onChange={setActiveData} />
         </div>
 
         {/* Preview Tab */}
         <div className={activeTab === 'preview' ? 'flex-1 flex flex-col' : 'hidden'} style={{ minHeight: 0 }}>
           <div className="p-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-sm z-20 shrink-0">
             <SectionToggle
-              order={data.sectionOrder}
-              onChange={(order) => setData({ ...data, sectionOrder: order })}
+              order={activeData.sectionOrder}
+              onChange={(order) => setActiveData({ ...activeData, sectionOrder: order })}
             />
           </div>
 
@@ -281,7 +294,7 @@ export function Dashboard() {
                   left: 0,
                 }}
               >
-                <CVPreview data={data} />
+                <CVPreview data={activeData} />
               </div>
             </div>
           </div>
@@ -291,6 +304,19 @@ export function Dashboard() {
               Download PDF
             </Button>
           </div>
+        </div>
+
+        {/* CVs Tab */}
+        <div className={activeTab === 'cvs' ? 'flex-1' : 'hidden'}>
+          <CVsTab
+            cvs={cvs}
+            activeCvId={activeCvId}
+            maxCVs={maxCVs}
+            onSelect={setActiveCvId}
+            onAdd={addCV}
+            onDelete={deleteCV}
+            onRename={renameCV}
+          />
         </div>
 
         {/* Settings Tab */}

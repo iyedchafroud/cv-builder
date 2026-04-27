@@ -1,9 +1,10 @@
-import { FileText, Settings as SettingsIcon, Eye } from 'lucide-react';
+import { Eye, FileText, FolderOpen, Settings as SettingsIcon } from 'lucide-react';
 
 export function BottomNav({ activeTab, onTabChange }) {
   const tabs = [
     { id: 'forms', label: 'Forms', icon: FileText },
     { id: 'preview', label: 'Preview', icon: Eye },
+    { id: 'cvs', label: 'CVs', icon: FolderOpen },
     { id: 'settings', label: 'Settings', icon: SettingsIcon },
   ];
 

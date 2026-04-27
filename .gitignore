@@ -7,6 +7,9 @@ client/dist/
 client/.env
 server/.env
 npm-debug.log*
+report/
+report/*
+*.DS_Store
 
 # Android build outputs (generated — do not commit)
 client/android/.gradle/
