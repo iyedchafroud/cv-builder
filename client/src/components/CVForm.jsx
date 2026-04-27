@@ -357,7 +357,7 @@ export function CVForm({ data, onChange }) {
                 >
                   <button
                     onClick={() => removeExperience(item.id)}
-                    className="absolute top-2 right-2 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md opacity-0 group-hover:opacity-100 transition-all"
+                    className="absolute top-2 right-2 p-1.5 text-red-400 dark:text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -469,7 +469,7 @@ export function CVForm({ data, onChange }) {
                 >
                   <button
                     onClick={() => removeEducation(item.id)}
-                    className="absolute top-2 right-2 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md opacity-0 group-hover:opacity-100 transition-all"
+                    className="absolute top-2 right-2 p-1.5 text-red-400 dark:text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -552,7 +552,7 @@ export function CVForm({ data, onChange }) {
                 >
                   <button
                     onClick={() => removeEducation(item.id)}
-                    className="absolute top-2 right-2 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md opacity-0 group-hover:opacity-100 transition-all"
+                    className="absolute top-2 right-2 p-1.5 text-red-400 dark:text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -633,7 +633,7 @@ export function CVForm({ data, onChange }) {
                 >
                   <button
                     onClick={() => removeExperience(item.id)}
-                    className="absolute top-2 right-2 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md opacity-0 group-hover:opacity-100 transition-all"
+                    className="absolute top-2 right-2 p-1.5 text-red-400 dark:text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -759,7 +759,7 @@ export function CVForm({ data, onChange }) {
             >
               <button
                 onClick={() => removeCertification(item.id)}
-                className="absolute top-2 right-2 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md opacity-0 group-hover:opacity-100 transition-all"
+                className="absolute top-2 right-2 p-1.5 text-red-400 dark:text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
               >
                 <Trash2 className="h-4 w-4" />
               </button>
@@ -815,7 +815,7 @@ export function CVForm({ data, onChange }) {
             >
               <button
                 onClick={() => removeLanguage(item.id)}
-                className="absolute top-2 right-2 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md opacity-0 group-hover:opacity-100 transition-all"
+                className="absolute top-2 right-2 p-1.5 text-red-400 dark:text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
               >
                 <Trash2 className="h-4 w-4" />
               </button>

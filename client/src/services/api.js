@@ -52,6 +52,9 @@ export const authApi = {
   me() {
     return request('/auth/me');
   },
+  deleteAccount() {
+    return request('/auth/account', { method: 'DELETE' });
+  },
 };
 
 export const cvApi = {

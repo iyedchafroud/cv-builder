@@ -194,6 +194,21 @@ export function Dashboard() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [fitScale, setFitScale] = useState(1);
   const containerRef = useRef(null);
+  const formsScrollRef = useRef(0);
+
+  function handleTabChange(newTab) {
+    // Save scroll position when leaving Forms
+    if (activeTab === 'forms') {
+      formsScrollRef.current = window.scrollY;
+    }
+    setActiveTab(newTab);
+    if (newTab === 'forms') {
+      // Restore Forms scroll position after the tab re-renders
+      requestAnimationFrame(() => window.scrollTo(0, formsScrollRef.current));
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }
 
   // Measure the scroll container and compute the fit scale in real pixels
   const computeScale = useCallback(() => {
@@ -325,7 +340,7 @@ export function Dashboard() {
         </div>
       </main>
 
-      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+      <BottomNav activeTab={activeTab} onTabChange={handleTabChange} />
     </div>
   );
 }

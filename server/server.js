@@ -122,6 +122,18 @@ app.get('/api/auth/me', requireAuth, async (req, res) => {
   }
 });
 
+// DELETE /api/auth/account — permanently delete the user and all their CVs
+app.delete('/api/auth/account', requireAuth, async (req, res) => {
+  try {
+    await CV.deleteMany({ userId: req.user.id });
+    await User.findByIdAndDelete(req.user.id);
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Account deletion failed', error);
+    return res.status(500).json({ error: 'Failed to delete account' });
+  }
+});
+
 // ─── CV helpers ──────────────────────────────────────────────────────────────
 
 function serializeCV(cv) {
