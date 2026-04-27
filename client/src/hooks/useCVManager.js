@@ -1,134 +1,110 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { cvApi } from '../services/api';
-import { createInitialCVData, normalizeCVData } from './useCV';
+import { cvsApi } from '../services/api';
+import { createInitialCVData } from './useCV';
 
-const STORAGE_KEY = 'cv-builder-cvs';
 const ACTIVE_KEY = 'cv-builder-active-cv';
 const MAX_CVS = 10;
 
-export function createNewCV(name) {
-  return {
-    id: `cv-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-    name: name || 'My CV',
-    data: createInitialCVData(),
-  };
-}
-
-function readStorage() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const arr = JSON.parse(raw);
-      if (Array.isArray(arr) && arr.length > 0) return arr;
-    }
-  } catch {}
-  return null;
-}
-
-function writeStorage(cvs) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(cvs));
-  } catch {}
-}
-
 export function useCVManager(enabled = true) {
-  const [cvs, setCvs] = useState(() => {
-    const stored = readStorage();
-    return stored ?? [createNewCV('My CV')];
-  });
-
-  const [activeCvId, setActiveCvIdState] = useState(() => {
-    const stored = readStorage() ?? [createNewCV('My CV')];
-    const savedId = localStorage.getItem(ACTIVE_KEY);
-    return stored.find((c) => c.id === savedId) ? savedId : stored[0].id;
-  });
-
+  const [cvs, setCvs] = useState([]);
+  const [activeCvId, setActiveCvIdState] = useState('');
   const [isLoading, setIsLoading] = useState(enabled);
   const [saveStatus, setSaveStatus] = useState('idle');
 
-  const serverSaveTimerRef = useRef(null);
-  const resetStatusTimerRef = useRef(null);
-  const lastSavedRef = useRef(null);
+  const saveTimerRef = useRef(null);
+  const resetTimerRef = useRef(null);
+  const lastSavedRef = useRef('');
 
-  // On mount: if no local data, migrate from server
+  // Load all CVs from server on mount
   useEffect(() => {
     if (!enabled) {
       setIsLoading(false);
       return;
     }
-    if (readStorage()) {
-      setIsLoading(false);
-      return;
-    }
+
     setIsLoading(true);
-    cvApi
-      .get()
-      .then((response) => {
-        const normalized = normalizeCVData(response);
-        const migrated = createNewCV('My CV');
-        migrated.data = normalized;
-        const newCvs = [migrated];
-        setCvs(newCvs);
-        setActiveCvIdState(migrated.id);
-        writeStorage(newCvs);
-        localStorage.setItem(ACTIVE_KEY, migrated.id);
-        lastSavedRef.current = JSON.stringify(normalized);
+    cvsApi
+      .list()
+      .then((serverCvs) => {
+        setCvs(serverCvs);
+
+        // Restore last-used CV or fall back to the first one
+        const storedId = localStorage.getItem(ACTIVE_KEY);
+        const validId = serverCvs.find((c) => c.id === storedId)
+          ? storedId
+          : serverCvs[0]?.id ?? '';
+
+        setActiveCvIdState(validId);
+        if (validId) localStorage.setItem(ACTIVE_KEY, validId);
+
+        // Seed the "last saved" ref so we don't immediately re-save on mount
+        const active = serverCvs.find((c) => c.id === validId);
+        if (active) lastSavedRef.current = JSON.stringify(active.data);
       })
-      .catch((err) => console.error('Failed to load CV', err))
+      .catch((err) => {
+        console.error('Failed to load CVs', err);
+        setSaveStatus('error');
+      })
       .finally(() => setIsLoading(false));
   }, [enabled]);
 
-  // Persist CVs list to localStorage
+  // Persist the active CV selection to localStorage
   useEffect(() => {
-    writeStorage(cvs);
-  }, [cvs]);
-
-  // Persist active CV id
-  useEffect(() => {
-    localStorage.setItem(ACTIVE_KEY, activeCvId);
+    if (activeCvId) localStorage.setItem(ACTIVE_KEY, activeCvId);
   }, [activeCvId]);
 
-  const activeCV = cvs.find((cv) => cv.id === activeCvId) ?? cvs[0];
-  const activeDataStr = JSON.stringify(activeCV?.data);
+  const activeCV = cvs.find((cv) => cv.id === activeCvId) ?? cvs[0] ?? null;
+  const activeData = activeCV?.data ?? createInitialCVData();
+  const activeDataStr = JSON.stringify(activeData);
 
-  // Debounced server save for active CV
+  // Debounced server save whenever the active CV's data changes
   useEffect(() => {
     if (!enabled || isLoading || !activeCV) return;
     if (activeDataStr === lastSavedRef.current) return;
 
     setSaveStatus('saving');
-    if (serverSaveTimerRef.current) clearTimeout(serverSaveTimerRef.current);
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
 
-    serverSaveTimerRef.current = setTimeout(async () => {
+    saveTimerRef.current = setTimeout(async () => {
       try {
-        await cvApi.save(activeCV.data);
+        await cvsApi.save(activeCV.id, activeCV.data);
         lastSavedRef.current = activeDataStr;
         setSaveStatus('saved');
-        if (resetStatusTimerRef.current) clearTimeout(resetStatusTimerRef.current);
-        resetStatusTimerRef.current = setTimeout(() => setSaveStatus('idle'), 2000);
-      } catch {
+        if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+        resetTimerRef.current = setTimeout(() => setSaveStatus('idle'), 2000);
+      } catch (err) {
+        console.error('Failed to save CV', err);
         setSaveStatus('error');
       }
     }, 1200);
 
     return () => {
-      if (serverSaveTimerRef.current) clearTimeout(serverSaveTimerRef.current);
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeDataStr, activeCvId, enabled, isLoading]);
 
-  // Cleanup on unmount
+  // Cleanup timers on unmount
   useEffect(
     () => () => {
-      if (serverSaveTimerRef.current) clearTimeout(serverSaveTimerRef.current);
-      if (resetStatusTimerRef.current) clearTimeout(resetStatusTimerRef.current);
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
     },
     []
   );
 
-  const setActiveCvId = useCallback((id) => setActiveCvIdState(id), []);
+  // Switch the active CV (update lastSavedRef so we don't re-save the newly selected CV)
+  const setActiveCvId = useCallback(
+    (id) => {
+      setActiveCvIdState(id);
+      const cv = cvs.find((c) => c.id === id);
+      if (cv) lastSavedRef.current = JSON.stringify(cv.data);
+    },
+    [cvs]
+  );
 
+  // Update the active CV's data locally (triggers the debounced save above)
   const setActiveData = useCallback(
     (newData) => {
       setCvs((prev) =>
@@ -138,38 +114,68 @@ export function useCVManager(enabled = true) {
     [activeCV?.id]
   );
 
-  const addCV = useCallback(() => {
-    setCvs((prev) => {
-      if (prev.length >= MAX_CVS) return prev;
-      const newCv = createNewCV(`CV ${prev.length + 1}`);
+  // Create a new CV on the server
+  const addCV = useCallback(async () => {
+    if (cvs.length >= MAX_CVS) return;
+    try {
+      const newCv = await cvsApi.create(`CV ${cvs.length + 1}`);
+      setCvs((prev) => [...prev, newCv]);
       setActiveCvIdState(newCv.id);
-      return [...prev, newCv];
-    });
-  }, []);
+      localStorage.setItem(ACTIVE_KEY, newCv.id);
+      lastSavedRef.current = JSON.stringify(newCv.data);
+    } catch (err) {
+      console.error('Failed to create CV', err);
+      alert('Failed to create CV. Please try again.');
+    }
+  }, [cvs.length]);
 
+  // Delete a CV from the server (not allowed if only 1 remains)
   const deleteCV = useCallback(
-    (id) => {
-      setCvs((prev) => {
-        if (prev.length <= 1) return prev;
-        const next = prev.filter((cv) => cv.id !== id);
-        if (activeCvId === id) setActiveCvIdState(next[0].id);
-        return next;
-      });
+    async (id) => {
+      if (cvs.length <= 1) return;
+      try {
+        await cvsApi.remove(id);
+        setCvs((prev) => {
+          const next = prev.filter((cv) => cv.id !== id);
+          if (activeCvId === id) {
+            const newActiveId = next[0]?.id ?? '';
+            setActiveCvIdState(newActiveId);
+            if (newActiveId) localStorage.setItem(ACTIVE_KEY, newActiveId);
+            const newActive = next.find((c) => c.id === newActiveId);
+            lastSavedRef.current = newActive ? JSON.stringify(newActive.data) : '';
+          }
+          return next;
+        });
+      } catch (err) {
+        console.error('Failed to delete CV', err);
+        alert('Failed to delete CV. Please try again.');
+      }
     },
-    [activeCvId]
+    [cvs.length, activeCvId]
   );
 
-  const renameCV = useCallback((id, name) => {
+  // Rename a CV (optimistic update, reverts on error)
+  const renameCV = useCallback(async (id, name) => {
     const trimmed = name.trim();
     if (!trimmed) return;
+
+    // Optimistic
     setCvs((prev) => prev.map((cv) => (cv.id === id ? { ...cv, name: trimmed } : cv)));
+
+    try {
+      await cvsApi.rename(id, trimmed);
+    } catch (err) {
+      console.error('Failed to rename CV', err);
+      // Revert: reload from server
+      cvsApi.list().then(setCvs).catch(() => {});
+    }
   }, []);
 
   return {
     cvs,
-    activeCvId,
+    activeCvId: activeCV?.id ?? '',
     setActiveCvId,
-    activeData: activeCV?.data ?? createInitialCVData(),
+    activeData,
     setActiveData,
     addCV,
     deleteCV,

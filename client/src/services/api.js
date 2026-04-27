@@ -65,3 +65,31 @@ export const cvApi = {
     });
   },
 };
+
+export const cvsApi = {
+  list() {
+    return request('/cvs');
+  },
+  create(name) {
+    return request('/cvs', {
+      method: 'POST',
+      body: JSON.stringify({ name }),
+    });
+  },
+  save(id, data) {
+    return request(`/cvs/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+  rename(id, name) {
+    return request(`/cvs/${id}/name`, {
+      method: 'PATCH',
+      body: JSON.stringify({ name }),
+    });
+  },
+  remove(id) {
+    return request(`/cvs/${id}`, { method: 'DELETE' });
+  },
+};
+
